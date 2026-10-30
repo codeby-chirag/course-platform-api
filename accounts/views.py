@@ -1,6 +1,9 @@
 from django.contrib.auth import get_user_model, login
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import status
 from rest_framework.generics import CreateAPIView
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -12,6 +15,8 @@ User = get_user_model()
 class SignUpView(CreateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    authentication_classes = []  # noqa: RUF012
+    permission_classes = [AllowAny]  # noqa: RUF012
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data = request.data)
@@ -25,6 +30,10 @@ class SignUpView(CreateAPIView):
 
 
 class LoginView(APIView):
+    authentication_classes = []
+    permission_classes = [AllowAny]  # noqa: RUF012
+    
+    @method_decorator(ensure_csrf_cookie)
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         
@@ -38,7 +47,4 @@ class LoginView(APIView):
             )
             
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    
-    
     
